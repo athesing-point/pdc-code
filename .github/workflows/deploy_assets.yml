@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Needed for git diff
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -30,14 +32,28 @@ jobs:
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "env=production" >> $GITHUB_OUTPUT
+            echo "source_dir=dist/prod" >> $GITHUB_OUTPUT
           else
             echo "env=staging" >> $GITHUB_OUTPUT
+            echo "source_dir=dist/staging" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create R2 bucket if needed
+        run: |
+          wrangler r2 bucket create $R2_BUCKET || echo "Bucket already exists or creation failed - continuing..."
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: Sync assets to R2
         run: |
-          wrangler r2 bucket create $R2_BUCKET || true
-          wrangler r2 object put $R2_BUCKET --file ./ --prefix "${{ steps.env.outputs.env }}/" --recursive
+          if [[ -d "${{ steps.env.outputs.source_dir }}" ]]; then
+            echo "Uploading files from ${{ steps.env.outputs.source_dir }} to ${{ steps.env.outputs.env }}/ prefix"
+            wrangler r2 object put $R2_BUCKET --file ${{ steps.env.outputs.source_dir }} --prefix "${{ steps.env.outputs.env }}/" --recursive
+          else
+            echo "Warning: Directory ${{ steps.env.outputs.source_dir }} does not exist"
+            exit 1
+          fi
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
