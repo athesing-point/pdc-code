@@ -19,10 +19,13 @@ jobs:
         with:
           fetch-depth: 2 # Needed for git diff
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: "20"
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
 
       - name: Install Wrangler
         run: npm install -g wrangler
@@ -36,6 +39,16 @@ jobs:
           else
             echo "env=staging" >> $GITHUB_OUTPUT
             echo "source_dir=dist/staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build assets
+        run: |
+          if [[ "${{ steps.env.outputs.env }}" == "production" ]]; then
+            echo "Building production assets..."
+            bun run build:prod
+          else
+            echo "Building staging assets..."
+            bun run build:staging
           fi
 
       - name: Create R2 bucket if needed

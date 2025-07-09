@@ -1,0 +1,28 @@
+{
+  "name": "pdc-code",
+  "version": "1.0.0",
+  "description": "Point.com CDN code bundles and build system",
+  "main": "scripts/build.js",
+  "scripts": {
+    "build:prod": "bun run scripts/build.js --env=production",
+    "build:staging": "bun run scripts/build.js --env=staging",
+    "build:all": "bun run build:staging && bun run build:prod",
+    "watch:staging": "bun run scripts/build.js --env=staging --watch",
+    "watch:prod": "bun run scripts/build.js --env=production --watch",
+    "clean": "bun run scripts/clean.js",
+    "dev": "bun run build:staging"
+  },
+  "keywords": [
+    "cdn",
+    "build",
+    "point.com"
+  ],
+  "author": "Point.com",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.19.12",
+    "html-minifier-terser": "^7.2.0",
+    "glob": "^10.4.5",
+    "chokidar": "^3.6.0"
+  }
+}
