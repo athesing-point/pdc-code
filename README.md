@@ -39,15 +39,18 @@ bun install
 
 ```
 pdc-code/
-├── src/              # Source files (HTML/CSS/JS)
-├── dist/             # Build output
-│   ├── staging/      # Staging builds
-│   └── prod/         # Production builds
+├── src/              # Source files (HTML/CSS/JS) - create your files here
+├── dist/             # Build output (created automatically)
+│   ├── staging/      # Staging builds (unminified)
+│   └── prod/         # Production builds (minified)
 ├── scripts/          # Build scripts
 │   ├── build.js      # Main build script
 │   ├── minify.js     # Minification functions
 │   ├── utils.js      # Utility functions
 │   └── clean.js      # Clean script
+├── .github/          # GitHub Actions workflow
+│   └── workflows/
+│       └── deploy_assets.yml
 ├── package.json      # Project configuration
 └── README.md         # This file
 ```
@@ -117,10 +120,15 @@ The build system automatically:
 
 The build outputs are designed to integrate with Point.com's CDN deployment workflow:
 
-- **Production builds** → `files.point.com/code/prod/`
-- **Staging builds** → `files.point.com/code/staging/`
+- **Production builds** → `https://files.point.com/code/prod/`
+- **Staging builds** → `https://files.point.com/code/staging/`
 
-The GitHub Actions workflow (configured separately) will automatically deploy files from the `dist/` directories to the appropriate CDN paths.
+The GitHub Actions workflow automatically:
+
+- Builds assets when code is pushed to `main` (production) or `staging` branches
+- Uploads files to Cloudflare R2 storage
+- Purges CDN cache for updated files
+- Uses Wrangler CLI for R2 operations
 
 ## Examples
 
@@ -209,7 +217,3 @@ The build system includes error handling - if minification fails for a file, it 
 1. Log a warning message
 2. Use the original file content
 3. Continue building other files
-
-## License
-
-ISC License - Point.com
