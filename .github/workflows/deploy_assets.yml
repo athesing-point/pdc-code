@@ -53,7 +53,7 @@ jobs:
 
       - name: Create R2 bucket if needed
         run: |
-          wrangler r2 bucket create $R2_BUCKET || echo "Bucket already exists or creation failed - continuing..."
+          wrangler r2 bucket create ${{ env.R2_BUCKET }} || echo "Bucket already exists or creation failed - continuing..."
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -62,7 +62,7 @@ jobs:
         run: |
           if [[ -d "${{ steps.env.outputs.source_dir }}" ]]; then
             echo "Uploading files from ${{ steps.env.outputs.source_dir }} to ${{ steps.env.outputs.env }}/ prefix"
-            wrangler r2 object put $R2_BUCKET --file ${{ steps.env.outputs.source_dir }} --prefix "${{ steps.env.outputs.env }}/" --recursive
+            wrangler r2 object put ${{ env.R2_BUCKET }} --file ${{ steps.env.outputs.source_dir }} --prefix "${{ steps.env.outputs.env }}/" --recursive
           else
             echo "Warning: Directory ${{ steps.env.outputs.source_dir }} does not exist"
             exit 1
@@ -99,7 +99,7 @@ jobs:
           echo "urls=[$(IFS=,; echo "${URLS[*]}")]" >> $GITHUB_OUTPUT
 
       - name: Purge Cloudflare cache for updated files
-        if: steps.build_urls.outputs.urls != "[]"
+        if: steps.build_urls.outputs.urls != '[]'
         run: |
           # Function to attempt cache purge with error handling
           purge_cache() {
